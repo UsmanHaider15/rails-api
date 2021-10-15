@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :article do
-    title { "MyString" }
-    content { "MyText" }
+    title { "Sample Title" }
+    content { "Sample Content" }
   end
 end
