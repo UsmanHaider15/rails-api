@@ -12,5 +12,7 @@ module Paginable
     def pagination_params
         params.permit![:page]
     end
+
+
     
 end

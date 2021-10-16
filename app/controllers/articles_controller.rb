@@ -8,6 +8,11 @@ class ArticlesController < ApplicationController
         render json: serializer.new(paginated.items, options), status: :ok
     end
 
+    def show
+        article = Article.find(params[:id])
+        render json: serializer.new(article), status: :ok
+    end
+
     def serializer 
         ArticleSerializer    
     end

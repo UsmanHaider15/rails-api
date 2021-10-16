@@ -47,4 +47,27 @@ RSpec.describe ArticlesController do
             expect(json[:links].keys).to contain_exactly(:first, :prev, :next, :last, :self)
         end
     end
+
+    describe "#show" do
+        let(:article) { create :article }
+        subject {get "/articles/#{article.id}"}
+        before { subject }
+
+        it "should return proper status code" do
+            expect(response).to have_http_status(:ok)
+        end
+
+        it "should return proper json response" do
+            aggregate_failures do
+                expect(json_data[:id]).to eq(article.id.to_s)
+                expect(json_data[:type]).to eq("article")
+                expect(json_data[:attributes]).to eq(
+                    title: article.title,
+                    content: article.content,
+                    slug: article.slug
+                )
+                
+            end
+        end
+    end
 end
