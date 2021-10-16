@@ -6,6 +6,7 @@ RSpec.describe ArticlesController do
             get "/articles"
             expect(response).to have_http_status(:ok)
         end
+        
         it "should return proper json response" do
             article = create(:article)
             get "/articles"
@@ -21,6 +22,15 @@ RSpec.describe ArticlesController do
                     slug: article.slug  
                 })
             end
+        end
+
+        it "should return articles in descending order" do
+            older_article = create :article, created_at: 1.hour.ago
+            recent_article = create :article
+
+            get '/articles'
+            ids = json_data.map { |item| item[:id].to_i}
+            expect(ids).to eq([recent_article.id, older_article.id])
         end
     end
 end
