@@ -31,6 +31,14 @@ RSpec.describe UserAuthenticator do
 
             it "should create new user if user doesn't exits" do
                 expect{ subject }.to change{ User.count }.from(0).to(1)
+                expect(User.last.name).to eq("John Dow")
+            end
+
+            it "should reuse user if user exists" do
+                user = create :user, user_data
+                expect{ subject }.not_to change{ User.count }
+                expect(user_authenitcator.user).to eq(user)
+
             end
         end
     end
