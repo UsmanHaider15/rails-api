@@ -38,7 +38,11 @@ RSpec.describe UserAuthenticator do
                 user = create :user, user_data
                 expect{ subject }.not_to change{ User.count }
                 expect(user_authenitcator.user).to eq(user)
+            end
 
+            it "should create new access token" do
+                expect{ subject }.to change{ AccessToken.count }.by(1)
+                expect(user_authenitcator.access_token).to be_present
             end
         end
     end
