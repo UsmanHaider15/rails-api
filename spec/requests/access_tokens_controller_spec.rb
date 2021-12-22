@@ -66,7 +66,7 @@ RSpec.describe AccessTokensController, type: :controller do
   end
 
   describe "#destroy" do
-    shared_examples_for "bad_authorization_request" do
+    shared_examples_for "forbidden_request" do
       let(:authorization_request_error) do { 
             "status": "403",
             "source": { "pointer": "/header/authorization" },
@@ -88,7 +88,7 @@ RSpec.describe AccessTokensController, type: :controller do
 
     context "when invalid reqeust" do
       subject { post :destroy}
-      it_behaves_like "bad_authorization_request"
+      it_behaves_like "forbidden_request"
     end
 
     context "when valid request" do
