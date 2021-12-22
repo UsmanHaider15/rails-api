@@ -4,27 +4,6 @@ RSpec.describe AccessTokensController, type: :controller do
 
   describe "#create" do
 
-    shared_examples_for "authentication_request" do
-      let(:error) do { 
-            "status": "401",
-            "source": { "pointer": "/code" },
-            "title":  "Invalid Code Attribute",
-            "detail": "You provided invalid code attribute."
-          }          
-      end
-
-      it "should return 401 status code" do
-        subject
-        expect(response).to have_http_status(401)
-      end
-
-      it "should return proper error response" do
-        subject
-        expect(json[:errors]).to include(error)
-      end
-    end
-
-
     context "when no code provided" do
       subject { post :create }
       it_behaves_like 'authentication_request'
@@ -66,30 +45,17 @@ RSpec.describe AccessTokensController, type: :controller do
   end
 
   describe "#destroy" do
-    shared_examples_for "forbidden_request" do
-      let(:authorization_request_error) do { 
-            "status": "403",
-            "source": { "pointer": "/header/authorization" },
-            "title":  "Invalid header authorization",
-            "detail": "You provided invalid header authorization."
-          }          
-      end
+    subject { post :destroy}
 
-      it "should return 401 status code" do
-        subject
-        expect(response).to have_http_status(401)
-      end
-
-      it "should return proper error response" do
-        subject
-        expect(json[:errors]).to include(authorization_request_error)
-      end
-    end
-
-    context "when invalid reqeust" do
-      subject { post :destroy}
+    context "when no Authorization header provided" do
       it_behaves_like "forbidden_request"
     end
+
+    context "when bad Authorization header provided" do
+      before { request.headers['authorization'] = "Invalid token"}
+      it_behaves_like "forbidden_request"
+    end
+
 
     context "when valid request" do
       
