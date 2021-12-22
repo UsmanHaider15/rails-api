@@ -66,7 +66,6 @@ RSpec.describe ArticlesController do
                     content: article.content,
                     slug: article.slug
                 )
-                
             end
         end
     end
