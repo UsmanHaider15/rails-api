@@ -4,7 +4,7 @@ RSpec.describe AccessTokensController, type: :controller do
 
   describe "#create" do
 
-    shared_examples_for "bad_request" do
+    shared_examples_for "authentication_request" do
       let(:error) do { 
             "status": "401",
             "source": { "pointer": "/code" },
@@ -27,7 +27,7 @@ RSpec.describe AccessTokensController, type: :controller do
 
     context "when no code provided" do
       subject { post :create }
-      it_behaves_like 'bad_request'
+      it_behaves_like 'authentication_request'
     end
     context "when invalid code code provided" do
       let(:github_error) {
@@ -38,7 +38,7 @@ RSpec.describe AccessTokensController, type: :controller do
       end
 
       subject { post :create, params: { code: 'invalid_code' } }
-      it_behaves_like 'bad_request'
+      it_behaves_like 'authentication_request'
     end
   
     context "when valid code is provided" do
@@ -62,6 +62,37 @@ RSpec.describe AccessTokensController, type: :controller do
         user = User.find_by(login: 'JohnDow_1')
         expect(json_data[:attributes]).to eq({token: user.access_token.token})
       end
+    end
+  end
+
+  describe "#destroy" do
+    shared_examples_for "bad_authorization_request" do
+      let(:authorization_request_error) do { 
+            "status": "403",
+            "source": { "pointer": "/header/authorization" },
+            "title":  "Invalid header authorization",
+            "detail": "You provided invalid header authorization."
+          }          
+      end
+
+      it "should return 401 status code" do
+        subject
+        expect(response).to have_http_status(401)
+      end
+
+      it "should return proper error response" do
+        subject
+        expect(json[:errors]).to include(authorization_request_error)
+      end
+    end
+
+    context "when invalid reqeust" do
+      subject { post :destroy}
+      it_behaves_like "bad_authorization_request"
+    end
+
+    context "when valid request" do
+      
     end
   end
 end
