@@ -34,5 +34,11 @@ RSpec.describe AccessToken, type: :model do
       user = create :user
       expect{ user.create_access_token }.to change{ AccessToken.count }.by(1)
     end
+
+    it "shouldn't generate token again" do
+      user = create :user
+      access_token = user.create_access_token
+      expect(access_token.token).to eq(access_token.reload.token)
+    end
   end
 end
