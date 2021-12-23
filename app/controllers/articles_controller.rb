@@ -14,6 +14,10 @@ class ArticlesController < ApplicationController
         render json: serializer.new(article), status: :ok
     end
 
+    def create 
+
+    end
+
     def serializer 
         ArticleSerializer    
     end

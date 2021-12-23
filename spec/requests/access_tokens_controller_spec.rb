@@ -56,9 +56,6 @@ RSpec.describe AccessTokensController, type: :controller do
       it_behaves_like "forbidden_request"
     end
 
-    
-
-
     context "when valid Authorization header provided" do
       let(:user) { create :user } 
       let(:access_token) {user.create_access_token}         
