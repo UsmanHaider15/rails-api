@@ -76,50 +76,86 @@ RSpec.describe ArticlesController, type: :controller do
             it_behaves_like "forbidden_request"
         end
 
-        context "when invalid token is provided" do
+        context "when request header contains invalid token" do
             before { request.headers['authorization'] = "Invalid Token"}
             it_behaves_like "forbidden_request"
         end
 
-        context "when valid token is provided" do
+        context "when request header contains valid token" do
             let(:user) { create :user }
             let(:access_token) { user.create_access_token}
             before { request.headers['authorization'] = "Bearer #{access_token.token}"}
-            let(:invalid_attributes) {
-               { data: {
-                    attributes: {
-                        title: '',
-                        content: ''
-                    }
-                }}
-            }
+
 
             subject { post :create} 
 
-            it "should return 422 status code" do
-                post :create
-                expect(response).to have_http_status(422)
+            context "when invalid attributes provided" do
+                let(:invalid_attributes) {
+                    { data: {
+                         attributes: {
+                             title: '',
+                             content: '',
+                             slug: '',
+                         }
+                     }}
+                 }
+
+                 it "should return 422 status code" do
+                    subject
+                    expect(response).to have_http_status(422)
+                end
+    
+                # it "should return proper error response" do
+                #     post :create, :params => invalid_attributes
+                #     expect(json[:errors]).to include({
+                #         :detail => "can't be blank",
+                #         :source=>{:pointer=>"/data/attributes/title"}
+                #     },
+                #     {
+                #         :detail => "can't be blank",
+                #         :source=>{:pointer=>"/data/attributes/content"}
+                #     },
+                #     {
+                #         :detail => "can't be blank",
+                #         :source=>{:pointer=>"/data/attributes/slug"}
+                #     }
+                # )
+                # end
             end
 
-            it "should return proper error response" do
-                post :create, :params => invalid_attributes
-                puts "response: #{json}"
-                expect(json[:errors]).to include({
-                    :detail => "can't be blank",
-                    :source=>{:pointer=>"/data/attributes/title"}
-                },
-                {
-                    :detail => "can't be blank",
-                    :source=>{:pointer=>"/data/attributes/content"}
-                },
-                {
-                    :detail => "can't be blank",
-                    :source=>{:pointer=>"/data/attributes/slug"}
-                }
-            )
-            end
+            # context "when valid attributes provided" do
+            #     let(:valid_attributes) {
+            #         { 
+            #             data: {
+            #                 attributes: {
+            #                     title: 'this is title',
+            #                     content: 'this is content',
+            #                     slug: 'this is slug'
+            #                 }
+            #          }}
+            #      }
+                 
+            #      subject { post :create, :params => valid_attributes} 
+
+            #     it "should return 201 status code" do
+            #         subject
+            #         expect(response).to have_http_status(201)
+            #     end
+
+            #     it "should return json response" do
+            #         subject
+            #         pp json_data
+            #         expect(json_data[:attributes]).to include(valid_attributes[:data][:attributes])
+            #     end
+
+            #     it "should create new access_token in db" do
+            #         expect{ subject }.to change{ Article.count }.by(1)
+            #     end
+
+            # end
 
 
         end
+
     end
 end
