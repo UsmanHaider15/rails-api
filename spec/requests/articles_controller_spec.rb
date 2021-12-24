@@ -71,15 +71,15 @@ RSpec.describe ArticlesController, type: :controller do
     end
 
     describe "#create" do
-        # subject { post :create }
-        # context "when no token is provided" do
-        #     it_behaves_like "forbidden_request"
-        # end
+        subject { post :create }
+        context "when no token is provided" do
+            it_behaves_like "forbidden_request"
+        end
 
-        # context "when invalid token is provided" do
-        #     before { request.headers['authorization'] = "Invalid Token"}
-        #     it_behaves_like "forbidden_request"
-        # end
+        context "when invalid token is provided" do
+            before { request.headers['authorization'] = "Invalid Token"}
+            it_behaves_like "forbidden_request"
+        end
 
         context "when valid token is provided" do
             let(:user) { create :user }
@@ -96,10 +96,10 @@ RSpec.describe ArticlesController, type: :controller do
 
             subject { post :create} 
 
-            # it "should return 422 status code" do
-            #     post :create
-            #     expect(response).to have_http_status(422)
-            # end
+            it "should return 422 status code" do
+                post :create
+                expect(response).to have_http_status(422)
+            end
 
             it "should return proper error response" do
                 post :create, :params => invalid_attributes
