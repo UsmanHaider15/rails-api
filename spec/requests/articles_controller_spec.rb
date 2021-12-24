@@ -71,14 +71,55 @@ RSpec.describe ArticlesController, type: :controller do
     end
 
     describe "#create" do
-        subject { post :create }
-        context "when no token is provided" do
-            it_behaves_like "forbidden_request"
-        end
+        # subject { post :create }
+        # context "when no token is provided" do
+        #     it_behaves_like "forbidden_request"
+        # end
 
-        context "when invalid token is provided" do
-            before { request.headers['authorization'] = "Invalid Token"}
-            it_behaves_like "forbidden_request"
+        # context "when invalid token is provided" do
+        #     before { request.headers['authorization'] = "Invalid Token"}
+        #     it_behaves_like "forbidden_request"
+        # end
+
+        context "when valid token is provided" do
+            let(:user) { create :user }
+            let(:access_token) { user.create_access_token}
+            before { request.headers['authorization'] = "Bearer #{access_token.token}"}
+            let(:invalid_attributes) {
+               { data: {
+                    attributes: {
+                        title: '',
+                        content: ''
+                    }
+                }}
+            }
+
+            subject { post :create} 
+
+            # it "should return 422 status code" do
+            #     post :create
+            #     expect(response).to have_http_status(422)
+            # end
+
+            it "should return proper error response" do
+                post :create, :params => invalid_attributes
+                puts "response: #{json}"
+                expect(json[:errors]).to include({
+                    :detail => "can't be blank",
+                    :source=>{:pointer=>"/data/attributes/title"}
+                },
+                {
+                    :detail => "can't be blank",
+                    :source=>{:pointer=>"/data/attributes/content"}
+                },
+                {
+                    :detail => "can't be blank",
+                    :source=>{:pointer=>"/data/attributes/slug"}
+                }
+            )
+            end
+
+
         end
     end
 end
