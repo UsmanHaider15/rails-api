@@ -24,8 +24,19 @@ class ArticlesController < ApplicationController
         end
     end
 
+    def update
+        article = Article.find(params[:id])
+        begin
+            pp article_params
+            article.update!(article_params)
+            render json: serializer.new(article), status: 201
+        rescue
+            render json: article, status: :unprocessable_entity, adapter: :json_api, serializer: ActiveModel::Serializer::ErrorSerializer
+        end
+    end
+
     def article_params
-        if(params.has_key?(:data) && params.has_key?(:attributes))
+        if(params.has_key?(:data))
             params.require(:data).require(:attributes)
         .permit(:title, :content, :slug)
         else

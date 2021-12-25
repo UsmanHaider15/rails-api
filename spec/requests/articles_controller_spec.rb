@@ -1,6 +1,16 @@
 require 'rails_helper'
 
 RSpec.describe ArticlesController, type: :controller do
+    let(:invalid_attributes) {
+        { data: {
+             attributes: {
+                 title: '',
+                 content: '',
+                 slug: '',
+             }
+         }}
+     }
+
     describe "#index" do
         it "should return 200 status code" do
             get :index
@@ -90,72 +100,135 @@ RSpec.describe ArticlesController, type: :controller do
             subject { post :create} 
 
             context "when invalid attributes provided" do
-                let(:invalid_attributes) {
-                    { data: {
-                         attributes: {
-                             title: '',
-                             content: '',
-                             slug: '',
-                         }
-                     }}
-                 }
+
 
                  it "should return 422 status code" do
                     subject
                     expect(response).to have_http_status(422)
                 end
     
-                # it "should return proper error response" do
-                #     post :create, :params => invalid_attributes
-                #     expect(json[:errors]).to include({
-                #         :detail => "can't be blank",
-                #         :source=>{:pointer=>"/data/attributes/title"}
-                #     },
-                #     {
-                #         :detail => "can't be blank",
-                #         :source=>{:pointer=>"/data/attributes/content"}
-                #     },
-                #     {
-                #         :detail => "can't be blank",
-                #         :source=>{:pointer=>"/data/attributes/slug"}
-                #     }
-                # )
-                # end
+                it "should return proper error response" do
+                    post :create, :params => invalid_attributes
+                    expect(json[:errors]).to include({
+                        :detail => "can't be blank",
+                        :source=>{:pointer=>"/data/attributes/title"}
+                    },
+                    {
+                        :detail => "can't be blank",
+                        :source=>{:pointer=>"/data/attributes/content"}
+                    },
+                    {
+                        :detail => "can't be blank",
+                        :source=>{:pointer=>"/data/attributes/slug"}
+                    }
+                )
+                end
             end
 
-            # context "when valid attributes provided" do
-            #     let(:valid_attributes) {
-            #         { 
-            #             data: {
-            #                 attributes: {
-            #                     title: 'this is title',
-            #                     content: 'this is content',
-            #                     slug: 'this is slug'
-            #                 }
-            #          }}
-            #      }
+            context "when valid attributes provided" do
+                let(:valid_attributes) {
+                    { 
+                        data: {
+                            attributes: {
+                                title: 'this is title',
+                                content: 'this is content',
+                                slug: 'this is slug'
+                            }
+                     }}
+                 }
                  
-            #      subject { post :create, :params => valid_attributes} 
+                 subject { post :create, :params => valid_attributes} 
 
-            #     it "should return 201 status code" do
-            #         subject
-            #         expect(response).to have_http_status(201)
-            #     end
+                it "should return 201 status code" do
+                    subject
+                    expect(response).to have_http_status(201)
+                end
 
-            #     it "should return json response" do
-            #         subject
-            #         pp json_data
-            #         expect(json_data[:attributes]).to include(valid_attributes[:data][:attributes])
-            #     end
+                it "should return json response" do
+                    subject
+                    expect(json_data[:attributes]).to include(valid_attributes[:data][:attributes])
+                end
 
-            #     it "should create new access_token in db" do
-            #         expect{ subject }.to change{ Article.count }.by(1)
-            #     end
+                it "should create new access_token in db" do
+                    expect{ subject }.to change{ Article.count }.by(1)
+                end
+            end
+        end
+    end
 
-            # end
+    describe "#update" do
+        let(:article) { create :article }
 
+        subject { patch :update, params: {id: article.id} }
 
+        context "when no token is provided" do
+            it_behaves_like "forbidden_request"
         end
 
+        context "when request header contains invalid token" do
+            before { request.headers['authorization'] = "Invalid Token"}
+            it_behaves_like "forbidden_request"
+        end
+
+        context "when request header contains valid token" do
+            let(:user) { create :user }
+            let(:access_token) { user.create_access_token}
+            before { request.headers['authorization'] = "Bearer #{access_token.token}"}
+
+
+            subject { patch :update, params: invalid_attributes.merge(id: article.id) }
+
+            context "when invalid attributes provided" do
+
+
+                 it "should return 422 status code" do
+                    subject
+                    expect(response).to have_http_status(422)
+                end
+    
+                it "should return proper error response" do
+                    post :create, :params => invalid_attributes
+                    expect(json[:errors]).to include({
+                        :detail => "can't be blank",
+                        :source=>{:pointer=>"/data/attributes/title"}
+                    },
+                    {
+                        :detail => "can't be blank",
+                        :source=>{:pointer=>"/data/attributes/content"}
+                    }
+                )
+                end
+            end
+
+            context "when valid attributes provided" do
+                let(:valid_attributes) {
+                    { 
+                        data: {
+                            attributes: {
+                                title: 'this is title',
+                                content: 'this is content',
+                            }
+                     }}
+                 }
+                 
+                 subject { post :update, :params => valid_attributes.merge(id: article.id)} 
+
+                it "should return 201 status code" do
+                    subject
+                    expect(response).to have_http_status(201)
+                end
+
+                it "should return json response" do
+                    subject
+                    expect(json_data[:attributes]).to include(valid_attributes[:data][:attributes])
+                end
+
+                it "should update the article" do
+                    subject
+                    expect(article.reload.title).to eq(valid_attributes[:data][:attributes][:title])
+                end
+            end
+        end
     end
+
 end

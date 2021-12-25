@@ -9,7 +9,12 @@ RSpec.describe "Article Routes" do
         expect(get '/articles/1').to route_to("articles#show", id: "1")
     end
 
-    it "POST /articles/1 routes to articles#create" do
+    it "POST /articles routes to articles#create" do
         expect(post '/articles').to route_to("articles#create")
+    end
+
+    it "POST /articles/:id routes to articles#update" do
+        expect(patch '/articles/1').to route_to("articles#update", id: '1')
+        expect(put '/articles/1').to route_to("articles#update", id: '1')
     end
 end
