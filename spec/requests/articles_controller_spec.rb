@@ -157,9 +157,21 @@ RSpec.describe ArticlesController, type: :controller do
     end
 
     describe "#update" do
-        let(:article) { create :article }
+        let(:valid_attributes) {
+            { 
+                data: {
+                    attributes: {
+                        title: 'this is title',
+                        content: 'this is content',
+                    }
+             }}
+         }
 
-        subject { patch :update, params: {id: article.id} }
+        let(:user) { create :user }
+        let(:article) { create :article, user: user }
+        let(:access_token) { user.create_access_token }
+
+        subject { patch :update, params: { id: article.id } }
 
         context "when no token is provided" do
             it_behaves_like "forbidden_request"
@@ -170,17 +182,20 @@ RSpec.describe ArticlesController, type: :controller do
             it_behaves_like "forbidden_request"
         end
 
-        context "when request header contains valid token" do
-            let(:user) { create :user }
-            let(:access_token) { user.create_access_token}
+        context "when trying to update not owned articles" do
+            let(:other_user) { create :user }
+            let(:other_article) { create :article, user: other_user }
+            subject { post :update, :params => valid_attributes.merge(id: other_article.id)} 
             before { request.headers['authorization'] = "Bearer #{access_token.token}"}
 
+            it_behaves_like "forbidden_request"
+        end
 
+        context "when request header contains valid token" do
+            before { request.headers['authorization'] = "Bearer #{access_token.token}"}
             subject { patch :update, params: invalid_attributes.merge(id: article.id) }
 
             context "when invalid attributes provided" do
-
-
                  it "should return 422 status code" do
                     subject
                     expect(response).to have_http_status(422)
@@ -201,17 +216,7 @@ RSpec.describe ArticlesController, type: :controller do
             end
 
             context "when valid attributes provided" do
-                let(:valid_attributes) {
-                    { 
-                        data: {
-                            attributes: {
-                                title: 'this is title',
-                                content: 'this is content',
-                            }
-                     }}
-                 }
-                 
-                 subject { post :update, :params => valid_attributes.merge(id: article.id)} 
+                subject { post :update, :params => valid_attributes.merge(id: article.id)} 
 
                 it "should return 201 status code" do
                     subject
@@ -227,6 +232,7 @@ RSpec.describe ArticlesController, type: :controller do
                     subject
                     expect(article.reload.title).to eq(valid_attributes[:data][:attributes][:title])
                 end
+
             end
         end
     end
