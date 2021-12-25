@@ -17,4 +17,8 @@ RSpec.describe "Article Routes" do
         expect(patch '/articles/1').to route_to("articles#update", id: '1')
         expect(put '/articles/1').to route_to("articles#update", id: '1')
     end
+
+    it "DELETE /articles/:id routes to articles#update" do
+        expect(delete '/articles/1').to route_to("articles#destroy", id: '1')
+    end
 end

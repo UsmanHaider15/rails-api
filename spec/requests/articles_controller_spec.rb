@@ -185,7 +185,7 @@ RSpec.describe ArticlesController, type: :controller do
         context "when trying to update not owned articles" do
             let(:other_user) { create :user }
             let(:other_article) { create :article, user: other_user }
-            subject { post :update, :params => valid_attributes.merge(id: other_article.id)} 
+            subject { patch :update, :params => valid_attributes.merge(id: other_article.id)} 
             before { request.headers['authorization'] = "Bearer #{access_token.token}"}
 
             it_behaves_like "forbidden_request"
@@ -202,7 +202,7 @@ RSpec.describe ArticlesController, type: :controller do
                 end
     
                 it "should return proper error response" do
-                    post :create, :params => invalid_attributes
+                    subject
                     expect(json[:errors]).to include({
                         :detail => "can't be blank",
                         :source=>{:pointer=>"/data/attributes/title"}
@@ -237,4 +237,49 @@ RSpec.describe ArticlesController, type: :controller do
         end
     end
 
+
+    describe "#destroy" do
+        let(:user) { create :user }
+        let(:article) { create :article, user: user }
+        let(:access_token) { user.create_access_token }
+
+        subject { delete :destroy, params: { id: article.id } }
+
+        context "when no token is provided" do
+            it_behaves_like "forbidden_request"
+        end
+
+        context "when request header contains invalid token" do
+            before { request.headers['authorization'] = "Invalid Token"}
+            it_behaves_like "forbidden_request"
+        end
+
+        context "when trying to remove not owned articles" do
+            let(:other_user) { create :user }
+            let(:other_article) { create :article, user: other_user }
+            subject { delete :destroy, :params => {id: other_article.id} } 
+            before { request.headers['authorization'] = "Bearer #{access_token.token}"}
+
+            it_behaves_like "forbidden_request"
+        end
+
+        context "when request header contains valid token" do
+            before { request.headers['authorization'] = "Bearer #{access_token.token}"}
+
+            it "should return 204 status code" do
+                subject
+                expect(response).to have_http_status(204)
+            end
+
+            it "should return no response" do
+                subject
+                expect(response.body).to be_blank
+            end
+
+            it "should remove on article" do
+                article
+                expect{subject}.to change{ Article.count }.by(-1)
+            end
+        end
+    end
 end

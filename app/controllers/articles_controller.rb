@@ -36,6 +36,16 @@ class ArticlesController < ApplicationController
         end
     end
 
+    def destroy
+        begin
+            article = current_user.article.find(params[:id])
+            article.destroy
+            head 204
+        rescue ActiveRecord::RecordNotFound
+            authorization_error
+        end  
+    end
+
     def article_params
         if(params.has_key?(:data))
             params.require(:data).require(:attributes)
